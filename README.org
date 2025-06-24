@@ -1,22 +1,30 @@
 Toggle Doom Emacs package declarations by clicking on subtle overlays.
 
-This package provides a minor mode, =my-pkg-hover-mode=, that displays clickable action buttons next to =package!= and =unpin!= forms in your Doom Emacs =packages.el= file. When you hover your mouse over a line containing one of these declarations, buttons will appear, allowing you to quickly toggle the package's state.
+This package provides a minor mode, =doom-packages-inline-toggle=, that displays clickable action buttons next to =package!= and =unpin!= forms in your Doom Emacs =packages.el= file. When you hover your mouse over a line containing one of these declarations, buttons will appear, allowing you to quickly toggle the package's state.
 
 [[file:assets/_20250624_151452screenshot.png]]
-
 
 - *Toggle Pinning*: Quickly change a =(package! ...)= form to =(unpin! ...)= and back.
 - *Toggle Disabling*: Add or remove the =:disable t= flag from a package declaration.
 
+Add this to your ~config.el~ to automatically enable the minor mode when you open your ~packages.el~ file.
+#+begin_src emacs-lisp
+(defun my-enable-pkg-hover-in-doom-packages-el ()
+  "Enable `doom-packages-inline-toggle` only when visiting the user's main `packages.el`."
+  (when (and buffer-file-name
+             (string-equal buffer-file-name
+                           (expand-file-name "packages.el" doom-user-dir)))
+    (doom-packages-inline-toggle 1)))
+
+(add-hook 'find-file-hook #'my-enable-pkg-hover-in-doom-packages-el)
+#+end_src
+
 The system is designed to be extensible. You can add new buttons by defining a "generator" function and adding it to the =my-pkg-hover--button-generators= list.
 
-1.  Write a function that accepts the package analysis plist and returns a list of =(LABEL ACTION-LAMBDA)=.
-    #+begin_src emacs-lisp
-      (defun my-button-generator (analysis)
-        (cl-destructuring-bind (&key package-name is-pinned is-disabled form-start form-end &allow-other-keys) analysis
-          (list "click me" (lambda () (message "button clicked for %s" package-name)))))
-    #+end_src
-2.  Add it to the list:
-    #+begin_src emacs-lisp
-      (add-to-list 'my-pkg-hover--button-generators #'my-button-generator)
-    #+end_src
+Write a function that accepts the package analysis plist and returns a list of =(LABEL ACTION-LAMBDA)=.
+#+begin_src emacs-lisp
+(defun my-button-generator (analysis)
+  (cl-destructuring-bind (&key package-name is-pinned is-disabled form-start form-end &allow-other-keys) analysis
+    (list "click me" (lambda () (message "button clicked for %s" package-name)))))
+(add-to-list 'my-pkg-hover--button-generators #'my-button-generator)
+#+end_src

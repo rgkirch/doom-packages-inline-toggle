@@ -225,7 +225,7 @@ and `mouse-face' is the face used on mouse hover."
         current-line)
     (cond
      ;; If mode isn't active in the current window, do nothing.
-     ((not (buffer-local-value 'my-pkg-hover-mode (window-buffer (frame-selected-window)))))
+     ((not (buffer-local-value 'doom-packages-inline-toggle (window-buffer (frame-selected-window)))))
      ;; If mouse is completely still, do nothing.
      ((equal current-pos my-pkg-hover--last-pixel-position))
      ;; If mouse is outside a window, clean up the UI.
@@ -241,12 +241,12 @@ and `mouse-face' is the face used on mouse hover."
       (setq my-pkg-hover--last-line-number current-line)
       (my-pkg-hover--render-overlays-for-line current-line)))))
 
-(define-minor-mode my-pkg-hover-mode
+(define-minor-mode doom-packages-inline-toggle
   "On hover, show overlays for `package!` and `unpin!` forms."
   :init-value nil
   :lighter " Pkg-Hov"
   :keymap nil
-  (if my-pkg-hover-mode
+  (if doom-packages-inline-toggle
       (progn
         (my-pkg-hover--cleanup) ; Reset on activation
         (setq my-pkg-hover--timer

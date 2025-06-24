@@ -71,7 +71,7 @@
 (ert-deftest doom-packages-inline-toggle--render-buttons-for-multiple-forms-test ()
   "Test that buttons for multiple forms are ordered correctly."
   (my-pkg-hover-test--with-buffer "(package! a) (unpin! b :disable t)"
-    (my-pkg-hover-mode 1) (my-pkg-hover-mode -1)
+    (doom-packages-inline-toggle 1) (doom-packages-inline-toggle -1)
     (my-pkg-hover--render-overlays-for-line 1)
     ;; We now expect 4 overlays, one for each button.
     (should (= (length my-pkg-hover--overlays) 4))
@@ -92,7 +92,7 @@
   "Test clicking a specific button when multiple are present."
   (let ((initial-buffer "(package! a) (package! b)"))
     (my-pkg-hover-test--with-buffer initial-buffer
-      (my-pkg-hover-mode 1) (my-pkg-hover-mode -1)
+      (doom-packages-inline-toggle 1) (doom-packages-inline-toggle -1)
       (my-pkg-hover--render-overlays-for-line 1)
       ;; We expect 4 overlays: unpin/disable for 'a', and unpin/disable for 'b'
       (should (= (length my-pkg-hover--overlays) 4))
@@ -115,8 +115,8 @@
   (let ((initial-content "(when t\n  (package! tree-inspector))")
         (expected-content "(when t\n  (unpin! tree-inspector))"))
     (my-pkg-hover-test--with-buffer initial-content
-      (my-pkg-hover-mode 1) ; Activate to set up internals
-      (my-pkg-hover-mode -1) ; Deactivate to stop timer
+      (doom-packages-inline-toggle 1) ; Activate to set up internals
+      (doom-packages-inline-toggle -1) ; Deactivate to stop timer
 
       ;; Go to the line with the package form to simulate the mouse being there
       (goto-char (point-min))
