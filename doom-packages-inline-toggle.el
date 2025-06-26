@@ -1,6 +1,30 @@
-;;; doom-packages-inline-toggle.el --- On-hover overlays for Doom `package!` and `unpin!` forms. -*- lexical-binding: t; -*-
+;;; doom-packages-inline-toggle.el --- On-hover overlays for Doom `package!` and `unpin!` forms -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2025 Richie Kirchofer
+
+;; Author: Richie Kirchofer
+;; Version: 0.1
+;; Package-Requires: ((emacs "24.3"))
+;; Keywords: mouse, convenience
+;; URL: https://github.com/rgkirch/doom-packages-inline-toggle
+
+;; SPDX-License-Identifier: GPL-3.0-or-later
+;;
+;; This program is free software: you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free Software
+;; Foundation, either version 3 of the License, or (at your option) any later
+;; version.
+;;
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+;; details.
+;;
+;; You should have received a copy of the GNU General Public License along with
+;; this program. If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+;;
 ;; This package provides a minor mode that displays clickable buttons
 ;; at the end of a line containing `package!` or `unpin!` declarations.
 ;; The buttons allow for quickly toggling the pin status (`package!` <->
@@ -48,7 +72,7 @@
   (and (listp form) (memq (car form) '(package! unpin!))))
 
 (defun dpit--collect-candidate-forms (line-start line-end)
-  "Collect all `package!` or `unpin!` forms on the current line.
+  "Collect all `package!` or `unpin!` forms between LINE-START and LINE-END.
 This version correctly handles nested forms."
   (save-excursion
     (goto-char line-start)
@@ -64,8 +88,9 @@ This version correctly handles nested forms."
      collect form-cons)))
 
 (defun dpit--analyze-form (form-info)
-  "Analyze a candidate form to get name, type, status, and boundaries.
-Returns a plist on success, otherwise nil."
+  "Analyze a candidate form to get FORM-INFO.
+FORM-INFO is a plist including includes name, type, status, and
+ boundaries"
   (cl-destructuring-bind ((declaration package-name . rest) . form-start) form-info
     (when package-name
       `(:package-name ,package-name
@@ -82,12 +107,12 @@ Returns a plist on success, otherwise nil."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun dpit--add-disable-flag (form-end)
-  "Navigate to the end of a form and insert ' :disable t'."
+  "Navigate to FORM-END and insert ' :disable t'."
   (goto-char (1- form-end))
   (insert " :disable t"))
 
 (defun dpit--remove-disable-flag (form-start form-end)
-  "Find and remove ':disable t' within a form's bounds."
+  "Find and remove ':disable t' within FORM-START and FORM-END."
   (save-excursion
     (goto-char form-start)
     (when (re-search-forward "[[:space:]]*:disable[[:space:]]+t" form-end t)
@@ -104,11 +129,11 @@ Returns a plist on success, otherwise nil."
       (insert new-symbol-name))))
 
 (defun dpit--pin-package (form-start)
-  "Change an `unpin!` form to a `package!` form."
+  "Change an `unpin!` form at FORM-START to a `package!` form."
   (dpit--replace-form-symbol form-start "package!"))
 
 (defun dpit--unpin-package (form-start)
-  "Change a `package!` form to an `unpin!` form."
+  "Change a `package!` form at FORM-START to an `unpin!` form."
   (dpit--replace-form-symbol form-start "unpin!"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -118,14 +143,14 @@ Returns a plist on success, otherwise nil."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun dpit--get-disable-button-def (analysis)
-  "Return a (LABEL . ACTION) cons for the disable/enable button."
+  "Given ANALYSIS, return a (LABEL . ACTION) cons for the disable/enable button."
   (cl-destructuring-bind (&key is-disabled form-start form-end &allow-other-keys) analysis
     (if is-disabled
         (list "enable" (lambda () (dpit--remove-disable-flag form-start form-end)))
       (list "disable" (lambda () (dpit--add-disable-flag form-end))))))
 
 (defun dpit--get-pin-button-def (analysis)
-  "Return a (LABEL . ACTION) cons for the pin/unpin button."
+  "Given ANALYSIS, return a (LABEL . ACTION) cons for the pin/unpin button."
   (cl-destructuring-bind (&key is-pinned form-start &allow-other-keys) analysis
     (if is-pinned
         (list "unpin" (lambda () (dpit--unpin-package form-start)))
@@ -147,8 +172,10 @@ Each function takes an analysis plist and returns a list of
 
 (cl-defun dpit--custom-buttonize (string callback &key (face 'lsp-lens-face) (mouse-face 'lsp-lens-mouse-face) data help-echo)
   "Create a button from STRING with custom faces.
-When clicked, run CALLBACK. `face' is the default text face,
-and `mouse-face' is the face used on mouse hover."
+When clicked, run CALLBACK. FACE is the default text face,
+and MOUSE-FACE is the face used on mouse hover.
+DATA is attached as `button-data'.
+HELP-ECHO is attached as `help-echo'."
   (propertize string
               'face face
               'mouse-face mouse-face
@@ -172,7 +199,7 @@ and `mouse-face' is the face used on mouse hover."
   (setq dpit--overlays '()))
 
 (defun dpit--render-overlays-for-line (line-number)
-  "Create an individual overlay for each button, with proper spacing."
+  "Create an individual overlay on LINE-NUMBER for each button."
   (dpit--clear-overlays)
   (let* ((spacing-str (propertize " " 'display '(space :width 1)))
          (line-start (save-excursion (goto-char (point-min)) (forward-line (1- line-number)) (point)))
