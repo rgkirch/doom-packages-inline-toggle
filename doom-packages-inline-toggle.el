@@ -4,7 +4,7 @@
 
 ;; Author: Richie Kirchofer
 ;; Version: 0.1
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: mouse, convenience
 ;; URL: https://github.com/rgkirch/doom-packages-inline-toggle
 
