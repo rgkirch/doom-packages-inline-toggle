@@ -237,9 +237,12 @@ HELP-ECHO is attached as `help-echo'."
     (cl-destructuring-bind (frame x . y) mouse-data
       (when (and frame (>= x 0) (>= y 0))
         (let* ((posn (posn-at-x-y x y frame))
-               (point (and posn (posn-point posn)))
-               (line-num (and point (line-number-at-pos point))))
-          line-num)))))
+               (point (and posn (posn-point posn))))
+          (when (and point (integer-or-marker-p point)
+                     (<= point (point-max))
+                     (>= point (point-min)))
+            (line-number-at-pos point)))))))
+
 
 (defun dpit--timer-callback ()
   "The main timer function that orchestrates the hover effect."
